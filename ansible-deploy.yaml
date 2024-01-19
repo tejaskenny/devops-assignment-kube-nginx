@@ -1,0 +1,87 @@
+---
+- name: Deploy Nginx Ingress Controller
+  hosts: localhost
+  become: yes
+
+  tasks:
+    - name: Add Helm Repository for Nginx Ingress
+      community.general.helm_repository:
+        name: ingress-nginx
+        repo_url: https://kubernetes.github.io/ingress-nginx
+      register: helm_repo_result
+      ignore_errors: yes
+
+    - name: Install Nginx Ingress Controller
+      community.general.helm:
+        name: nginx-ingress
+        chart_ref: ingress-nginx/ingress-nginx
+        state: present
+      vars:
+        kubeconfig_path: "~/.kube/config"  
+        kubeconfig_context: "eks-cluster"
+      ignore_errors: yes
+      when: helm_repo_result is success or helm_repo_result is skipped
+
+
+- name: Deploy Hello World Application
+  hosts: localhost
+  become: yes
+
+  tasks:
+    - name: Apply Hello World Deployment
+      k8s:
+        state: present
+        definition: "{{ lookup('file', 'kubernets-yaml/deployment-hello-world.yaml') | from_yaml }}"
+      ignore_errors: yes
+      retries: 3
+      delay: 5
+      until: k8s_result is success
+
+    - name: Apply Hello World Service
+      k8s:
+        state: present
+        definition: "{{ lookup('file', 'kubernets-yaml/service-hello-world.yaml') | from_yaml }}"
+      ignore_errors: yes
+      retries: 3
+      delay: 5
+      until: k8s_result is success
+
+    - name: Generate Self-Signed Certificate
+      community.general.openssl_certificate:
+        path: certificates
+        state: absent
+        owner: "{{ ansible_user }}"
+        group: "{{ ansible_user }}"
+        common_name: docker-project.com
+      delegate_to: localhost
+
+    - name: Cleanup Previous Certificates
+      file:
+        path: certificates
+        state: absent
+
+    - name: Apply TLS Secret
+      k8s:
+        state: present
+        definition:
+          apiVersion: v1
+          kind: Secret
+          metadata:
+            name: tls-secret
+            namespace: default
+          data:
+            tls.crt: "{{ lookup('file', 'certificates/tls.crt') | b64encode }}"
+            tls.key: "{{ lookup('file', 'certificates/tls.key') | b64encode }}"
+      ignore_errors: yes
+      retries: 3
+      delay: 5
+      until: k8s_result is success
+
+    - name: Apply Updated Ingress
+      k8s:
+        state: present
+        definition: "{{ lookup('file', 'kubernets-yaml/nginx-ingress.yaml') | from_yaml }}"
+        ignore_errors: yes
+        retries: 3
+        delay: 5
+        until: k8s_result is success

@@ -28,6 +28,13 @@ List any prerequisites or dependencies that users need to have installed before 
 - [eksctl](https://eksctl.io/)
 - [Helm](https://helm.sh/)
 
+Additionally, install the following Ansible Galaxy collections:
+
+```bash
+ansible-galaxy collection install community.general
+ansible-galaxy collection install community.kubernetes
+
+
 ## Getting Started
 
 ### Clone the Repository

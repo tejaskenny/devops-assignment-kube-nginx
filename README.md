@@ -28,6 +28,8 @@ List any prerequisites or dependencies that users need to have installed before 
 - [eksctl](https://eksctl.io/)
 - [Helm](https://helm.sh/)
 
+
+
 Additionally, install the following Ansible Galaxy collections:
 
 ```bash

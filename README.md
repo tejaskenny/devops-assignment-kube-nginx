@@ -35,7 +35,7 @@ Additionally, install the following Ansible Galaxy collections:
 ```bash
 ansible-galaxy collection install community.general
 ansible-galaxy collection install community.kubernetes
-
+```
 
 ## Getting Started
 

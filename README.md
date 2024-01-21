@@ -42,8 +42,8 @@ ansible-galaxy collection install community.kubernetes
 ### Clone the Repository
 
 ```bash
-git clone https://github.com/your-username/your-repository.git
-cd your-repository
+git clone https://github.com/tejaskenny/devops-assignment-kube-nginx.git
+cd devops-assignment-kube-nginx
 ```
 ### Run the Ansible Playbook
 ```bash
